@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Header from "./components/header.jsx";
+import Header from "./components/Header.jsx";
 import Body from "./components/Body.jsx";
 import ShortCodePage from "./components/ShortCodePage.jsx";
 
