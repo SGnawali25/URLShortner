@@ -63,7 +63,8 @@ export const userInfo = async (req, res, next) => {
     if (!token) {
       return res.status(200).json({ user: null});
     }
-
+    console.log(`Token: ${token}`);
+    console.log(`JWT_SECRET: ${process.env.JWT_SECRET}`);
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
 
