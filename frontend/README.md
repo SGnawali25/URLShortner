@@ -1,16 +1,57 @@
-# React + Vite
+# Sandy URL Shortener
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Sandy URL Shortener is a web-based application that allows users to shorten URLs, manage their links, and track them. Users can sign in with Google, view their dashboard, and manage their URLs. Admins have additional privileges, such as viewing all users’ URLs and deleting any URL.
 
-Currently, two official plugins are available:
+## Production URLs
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Frontend:** [https://sandyurl.pages.dev](https://sandyurl.pages.dev)  
 
-## React Compiler
+> Note: Always use the frontend URL to access the application. All frontend requests are routed to the backend API automatically.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+### For Users
+- Sign in using Google OAuth.
+- Shorten long URLs.
+- View your dashboard with all your shortened URLs.
+- Delete URLs you have created.
+- View the creation date of each URL.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### For Admins
+- View all users' shortened URLs.
+- Delete any URL in the system.
+- View which user created each URL.
+
+## How to Use
+
+1. **Open the App:**  
+   Go to [https://sandyurl.pages.dev](https://sandyurl.pages.dev) in your browser.
+
+2. **Sign In:**  (Optional)
+   Click the **Google login** button to authenticate.
+
+3. **Shorten a URL:**  
+   - Enter the original URL in the input field.  
+   - Click **Shorten**.  
+   - The shortened URL will appear and be added to your dashboard.
+
+4. **Manage URLs:**  
+   - Click on a shortened URL to visit the link.  
+   - To delete a URL:
+     - Users can delete only the URLs they created.
+     - Admins can delete any URL.
+
+5. **Logout:**  
+   Click your avatar in the header and select **Logout**. Your dashboard will clear automatically.
+
+## URL Format
+
+All shortened URLs follow this format:
+
+https://sandyurl.pages.dev/<shortCode>
+
+## Notes
+
+- URLs are stored securely on the backend.
+- Google login requires a valid Google account authorized for this app.
+
