@@ -10,7 +10,7 @@ const sendToken = (user, statusCode, message, res) => {
   });
 
   res.status(statusCode)
-     .cookie('token', token, { httpOnly: true })
+     .cookie('token', token, { httpOnly: true, secure: true, sameSite: 'None' })
      .json({ success: true, message, user });
 };
 
