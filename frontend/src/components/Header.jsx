@@ -47,7 +47,7 @@ const Header = () => {
       await axios.post(`${BackendPrefix}/signin`, { credential }, config);
 
       // Fetch user after login
-      const { data } = await axios.get(`${BackendPrefix}/user/me`, {
+      const { data } = await axios.get(`${BackendPrefix}/user/me?_=${Date.now()}`, {
         withCredentials: true,
       });
       setUser(data.user);
