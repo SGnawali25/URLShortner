@@ -13,7 +13,7 @@ const Header = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const { data } = await axios.get(`${BackendPrefix}/user/me`, {
+        const { data } = await axios.get(`${BackendPrefix}/user/me?_=${Date.now()}`, {
           withCredentials: true,
         });
         setUser(data.user || null);
