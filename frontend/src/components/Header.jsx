@@ -67,7 +67,7 @@ const Header = () => {
       console.error("Logout failed:", err);
     }
   };
-
+  console.log("Current user:", user);
   return (
     <header style={styles.header}>
       <h2 style={styles.title}>Sandy URL Shortner</h2>
@@ -76,7 +76,7 @@ const Header = () => {
         {user ? (
           <div style={{ position: "relative" }}>
             <img
-              src={user?.avatar?.url || "https://via.placeholder.com/40"}
+              src={user?.avatar?.url || "avatar"}
               alt="Avatar"
               style={styles.profilePic}
               onClick={() => setDropdownOpen(!dropdownOpen)}
