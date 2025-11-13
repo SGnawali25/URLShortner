@@ -31,7 +31,6 @@ app.get("/", (req, res) => {
   res.send("URL Shortener Service is running");
 });
 
-console.log(process.env.CORS)
 mongoose
   .connect(process.env.DB_LOCAL_URI)
   .then(() => {

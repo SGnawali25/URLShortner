@@ -88,8 +88,6 @@ const Body = ({ user }) => {
       timeStyle: "short",
     });
   };
-  console.log("user", user);
-  console.log("urls", urls);
   return (
     <div style={styles.container}>
       <h3>URL Shortener</h3>
