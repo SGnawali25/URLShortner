@@ -4,34 +4,20 @@ import axios from "axios";
 const BackendPrefix = import.meta.env.VITE_APP_API_KEY;
 const frontendPrefix = import.meta.env.VITE_APP_FRONTEND_PREFIX;
 
-const Body = () => {
+const Body = ({ user }) => {
   const [originalUrl, setOriginalUrl] = useState("");
   const [shortenedUrl, setShortenedUrl] = useState(null);
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [user, setUser] = useState(null);
 
-  // Fetch current user on mount
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data } = await axios.get(`${BackendPrefix}/user/me`, {
-          withCredentials: true,
-        });
-        setUser(data.user || null);
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-        setUser(null);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  // Fetch dashboard URLs after user is set
+  // Fetch dashboard URLs when user changes
   useEffect(() => {
     const fetchDashboardUrls = async () => {
-      if (!user) return;
+      if (!user) {
+        setUrls([]);
+        return;
+      };
 
       try {
         const { data } = await axios.get(`${BackendPrefix}/dashboard`, {
@@ -42,6 +28,7 @@ const Body = () => {
         console.error("Failed to fetch dashboard URLs:", err);
       }
     };
+
     fetchDashboardUrls();
   }, [user]);
 
@@ -77,7 +64,7 @@ const Body = () => {
     setLoading(false);
   };
 
-  // Handle URL delete (admin only)
+  // Handle URL delete (user or admin)
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${BackendPrefix}/url/${id}`, {
@@ -93,6 +80,16 @@ const Body = () => {
     }
   };
 
+  // Format date
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleString("en-US", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  };
+  console.log("user", user);
+  console.log("urls", urls);
   return (
     <div style={styles.container}>
       <h3>URL Shortener</h3>
@@ -134,8 +131,9 @@ const Body = () => {
               <tr>
                 <th style={styles.th}>Original URL</th>
                 <th style={styles.th}>Shortened URL</th>
+                <th style={styles.th}>Created At</th>
                 {user?.role === "admin" && <th style={styles.th}>Created By</th>}
-                {user?.role === "admin" && <th style={styles.th}>Actions</th>}
+                <th style={styles.th}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -155,21 +153,23 @@ const Body = () => {
                       {frontendPrefix}/{url.shortCode}
                     </a>
                   </td>
+                  <td style={styles.td}>{formatDate(url.createdAt)}</td>
                   {user?.role === "admin" && (
                     <td style={styles.td}>
                       {url.createdBy?.email || "Anonymous"}
                     </td>
                   )}
-                  {user?.role === "admin" && (
-                    <td style={styles.td}>
+                  <td style={styles.td}>
+                    {(user?.role === "admin" ||
+                      url.createdBy === user?._id) && (
                       <button
                         onClick={() => handleDelete(url._id)}
                         style={styles.deleteButton}
                       >
                         Delete
                       </button>
-                    </td>
-                  )}
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -192,33 +192,33 @@ const styles = {
   button: { padding: "0.5rem 1rem", fontSize: "1rem", cursor: "pointer" },
   error: { color: "red" },
   result: { margin: "1rem 0" },
-  tableContainer: { 
-    marginTop: "2rem", 
-    display: "flex", 
-    flexDirection: "column", 
-    alignItems: "center" 
+  tableContainer: {
+    marginTop: "2rem",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
   },
-  table: { 
-    borderCollapse: "collapse", 
-    width: "90%", 
+  table: {
+    borderCollapse: "collapse",
+    width: "90%",
     maxWidth: "1000px",
-    boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
   },
-  th: { 
-    backgroundColor: "#f4f4f4", 
-    padding: "0.75rem", 
+  th: {
+    backgroundColor: "#f4f4f4",
+    padding: "0.75rem",
     textAlign: "left",
     borderBottom: "2px solid #ddd",
-    fontWeight: "600"
+    fontWeight: "600",
   },
-  td: { 
-    padding: "0.75rem", 
+  td: {
+    padding: "0.75rem",
     borderBottom: "1px solid #ddd",
-    wordBreak: "break-word"
+    wordBreak: "break-word",
   },
   tr: {
     backgroundColor: "#fff",
-    transition: "background-color 0.2s"
+    transition: "background-color 0.2s",
   },
   deleteButton: {
     padding: "0.4rem 0.8rem",
@@ -227,7 +227,7 @@ const styles = {
     backgroundColor: "#dc3545",
     border: "none",
     borderRadius: "4px",
-    fontSize: "0.9rem"
+    fontSize: "0.9rem",
   },
 };
 

@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
 
 const BackendPrefix = import.meta.env.VITE_APP_API_KEY;
 
-const Header = () => {
-  const [user, setUser] = useState(null);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+const Header = ({ user, setUser }) => {
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const dropdownRef = useRef(null);
 
   // Check current user on mount
@@ -23,7 +22,7 @@ const Header = () => {
       }
     };
     fetchUser();
-  }, []);
+  }, [setUser]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -67,10 +66,10 @@ const Header = () => {
       console.error("Logout failed:", err);
     }
   };
-  console.log("Current user:", user);
+
   return (
     <header style={styles.header}>
-      <h2 style={styles.title}>Sandy URL Shortner</h2>
+      <h2 style={styles.title}>Sandy URL Shortener</h2>
 
       <div style={styles.right} ref={dropdownRef}>
         {user ? (

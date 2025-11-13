@@ -78,20 +78,27 @@ export const verifyShortCode = async (req, res) => {
   }
 };
 
-// Delete URL (admin only)
+// Delete URL (admin or owner)
 export const deleteUrl = async (req, res) => {
-  console.log(`delete url called. ${JSON.stringify(req.params)}`);
   try {
     const { id } = req.params;
 
-    const url = await Url.findByIdAndDelete(id);
+    const url = await Url.findById(id);
     if (!url) return res.status(404).json({ message: "URL not found" });
+
+    // Only allow admin or creator
+    if (req.user.role !== "admin" && url.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "You are not allowed to delete this URL" });
+    }
+
+    await Url.findByIdAndDelete(id);
 
     res.status(200).json({ message: "URL deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 // Get URLs for dashboard (role-based)
 export const getDashboardUrls = async (req, res) => {
@@ -115,14 +122,4 @@ export const getDashboardUrls = async (req, res) => {
   }
 };
 
-// Get all URLs by a specific user
-export const getUserUrls = async (req, res) => {
-  console.log(`get user urls called. ${JSON.stringify(req.params)}`);
-  try {
-    const { userId } = req.params;
-    const urls = await Url.find({ createdBy: userId });
-    res.status(200).json({ urls });
-  } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
-  }
-};
+

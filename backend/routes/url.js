@@ -1,7 +1,7 @@
 // routes/url.js
 import express from 'express';
-import { createShortUrl,redirectToOriginalUrl, deleteUrl, getDashboardUrls, getUserUrls, verifyShortCode } from '../controllers/url.js';
-import { isAuthenticated, isAdmin, identifyUser} from '../middleware/auth.js';
+import { createShortUrl,redirectToOriginalUrl, deleteUrl, getDashboardUrls, verifyShortCode } from '../controllers/url.js';
+import { isAuthenticated, identifyUser} from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -13,12 +13,10 @@ router.post('/shorten', identifyUser, createShortUrl);
 router.get('/dashboard', identifyUser, getDashboardUrls);
 
 // Admin can delete a URL
-router.delete('/url/:id', isAuthenticated, isAdmin, deleteUrl);
+router.delete('/url/:id', isAuthenticated, deleteUrl);
 
-// Get all URLs by a specific user (authenticated users only)
-router.get('/urls/user/:userId', isAuthenticated,isAdmin, getUserUrls);
 
-router.get('/verify/:shortCode', identifyUser, verifyShortCode);
+router.get('/verify/:shortCode', verifyShortCode);
 
 router.get('/:shortCode', redirectToOriginalUrl);
 
