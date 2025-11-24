@@ -1,5 +1,6 @@
 // Updated authController.js for Google Sign-In using credentials token
 import { User } from '../models/user.js';
+import { Url } from '../models/url.js';
 import jwt from 'jsonwebtoken';
 
 
@@ -88,5 +89,36 @@ export const getAllUsers = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+// Delete user (admin or owner)
+export const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the user
+    const user = await User.findById(id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: "User not found", status: "false" });
+    }
+
+    // Prevent self-deletion
+    if (req.user._id.toString() === id) {
+      return res.status(403).json({
+        message: "You cannot delete your own account",
+        status: "false",
+      });
+    }
+
+    // Delete all URLs created by this user
+    await Url.deleteMany({ createdBy: id });
+
+    // Delete the user
+    await User.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "User and their URLs deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
   }
 };
