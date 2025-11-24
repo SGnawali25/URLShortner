@@ -105,7 +105,6 @@ const Body = ({ user }) => {
 
   return (
     <div style={styles.container}>
-      <h3 style={styles.title}>URL Shortener</h3>
 
       {/* Input to shorten URL */}
       <div style={styles.inputContainer}>

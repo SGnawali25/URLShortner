@@ -181,15 +181,19 @@ const styles = {
   container: {
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     padding: "1rem 1.5rem",
     maxWidth: "1400px",
     margin: "0 auto",
+    position: "relative",
   },
   logo: {
     display: "flex",
     alignItems: "center",
     color: "#007bff",
+    position: "absolute",
+    left: "50%",
+    transform: "translateX(-50%)",
   },
   title: {
     margin: 0,
@@ -202,6 +206,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     position: "relative",
+    marginLeft: "auto",
   },
   loginWrapper: {
     display: "flex",
