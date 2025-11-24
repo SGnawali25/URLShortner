@@ -10,6 +10,7 @@ const Body = ({ user }) => {
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [users, setUsers] = useState([]);
 
   // Fetch dashboard URLs when user changes
   useEffect(() => {
@@ -24,6 +25,12 @@ const Body = ({ user }) => {
           withCredentials: true,
         });
         setUrls(data.urls || []);
+        if (user.role === "admin") {
+          const { data } = await axios.get(`${BackendPrefix}/users`, {
+            withCredentials: true,
+          });
+          setUsers(data.users || []);
+        }
       } catch (err) {
         console.error("Failed to fetch dashboard URLs:", err);
       }
@@ -80,6 +87,26 @@ const Body = ({ user }) => {
     }
   };
 
+  // Handle user delete (user or admin)
+  const handleDeleteUser = async (id) => {
+    try {
+      await axios.delete(`${BackendPrefix}/user/${id}`, {
+        withCredentials: true,
+      });
+
+      const dashboardRes = await axios.get(`${BackendPrefix}/dashboard`, {
+        withCredentials: true,
+      });
+      setUrls(dashboardRes.data.urls || []);
+      const usersRes = await axios.get(`${BackendPrefix}/users`, {
+        withCredentials: true,
+      });
+      setUsers(usersRes.data.users || []);
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
+
   // Format date
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -98,14 +125,16 @@ const Body = ({ user }) => {
       fill="currentColor"
       style={{ display: "inline-block", verticalAlign: "middle" }}
     >
-      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-      <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+      <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+      <path
+        fillRule="evenodd"
+        d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"
+      />
     </svg>
   );
 
   return (
     <div style={styles.container}>
-
       {/* Input to shorten URL */}
       <div style={styles.inputContainer}>
         <input
@@ -113,6 +142,11 @@ const Body = ({ user }) => {
           placeholder="Enter URL"
           value={originalUrl}
           onChange={(e) => setOriginalUrl(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              handleShorten();
+            }
+          }}
           style={styles.input}
         />
         <button
@@ -129,7 +163,12 @@ const Body = ({ user }) => {
       {shortenedUrl && (
         <div style={styles.result}>
           <strong>Shortened URL:</strong>{" "}
-          <a href={shortenedUrl} target="_blank" rel="noreferrer" style={styles.link}>
+          <a
+            href={shortenedUrl}
+            target="_blank"
+            rel="noreferrer"
+            style={styles.link}
+          >
             {shortenedUrl}
           </a>
         </div>
@@ -138,7 +177,7 @@ const Body = ({ user }) => {
       {urls.length > 0 && (
         <div style={styles.tableContainer}>
           <h4 style={styles.subtitle}>Your URLs:</h4>
-          
+
           {/* Desktop Table View */}
           <div style={styles.desktopTable}>
             <table style={styles.table}>
@@ -147,7 +186,9 @@ const Body = ({ user }) => {
                   <th style={styles.th}>Original URL</th>
                   <th style={styles.th}>Shortened URL</th>
                   <th style={styles.th}>Created At</th>
-                  {user?.role === "admin" && <th style={styles.th}>Created By</th>}
+                  {user?.role === "admin" && (
+                    <th style={styles.th}>Created By</th>
+                  )}
                   <th style={styles.th}>Actions</th>
                 </tr>
               </thead>
@@ -155,7 +196,12 @@ const Body = ({ user }) => {
                 {urls.map((url) => (
                   <tr key={url._id} style={styles.tr}>
                     <td style={styles.td}>
-                      <a href={url.originalUrl} target="_blank" rel="noreferrer" style={styles.link}>
+                      <a
+                        href={url.originalUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={styles.link}
+                      >
                         {url.originalUrl}
                       </a>
                     </td>
@@ -199,9 +245,122 @@ const Body = ({ user }) => {
               <div key={url._id} style={styles.card}>
                 <div style={styles.cardRow}>
                   <span style={styles.cardLabel}>Original URL:</span>
-                  <a href={url.originalUrl} target="_blank" rel="noreferrer" style={styles.cardLink}>
-                    {url.originalUrl.length > 40 
-                      ? url.originalUrl.substring(0, 40) + "..." 
+                  <a
+                    href={url.originalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={styles.cardLink}
+                  >
+                    {url.originalUrl.length > 40
+                      ? url.originalUrl.substring(0, 40) + "..."
+                      : url.originalUrl}
+                  </a>
+                </div>
+                <div style={styles.cardRow}>
+                  <span style={styles.cardLabel}>Shortened URL:</span>
+                  <a
+                    href={`${frontendPrefix}/${url.shortCode}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={styles.cardLink}
+                  >
+                    {frontendPrefix}/{url.shortCode}
+                  </a>
+                </div>
+                <div style={styles.cardRow}>
+                  <span style={styles.cardLabel}>Created:</span>
+                  <span>{formatDate(url.createdAt)}</span>
+                </div>
+                {user?.role === "admin" && (
+                  <div style={styles.cardRow}>
+                    <span style={styles.cardLabel}>Created By:</span>
+                    <span>{url.createdBy?.email || "Anonymous"}</span>
+                  </div>
+                )}
+                {(user?.role === "admin" || url.createdBy === user?._id) && (
+                  <button
+                    onClick={() => handleDelete(url._id)}
+                    style={styles.deleteButtonCard}
+                    title="Delete URL"
+                  >
+                    <TrashIcon /> Delete
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {users.length > 0 && (
+        <div style={styles.tableContainer}>
+          <h4 style={styles.subtitle}>Users:</h4>
+
+          {/* Desktop Table View */}
+          <div style={styles.desktopTable}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Name</th>
+                  <th style={styles.th}>Email</th>
+                  <th style={styles.th}>Picture</th>
+                  <th style={styles.th}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user._id} style={styles.tr}>
+                    <td style={styles.td}>
+                      <span>{user.name}</span>
+                    </td>
+                    <td style={styles.td}>
+                      <span>{user.email}</span>
+                    </td>
+                    <td style={styles.td}>
+                      {user.avatar?.url ? (
+                        <img
+                          src={user.avatar.url}
+                          alt="User Avatar"
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <span>No Avatar</span>
+                      )}
+                    </td>
+
+                    <td style={styles.td}>
+                      <button
+                        onClick={() => handleDeleteUser(user._id)}
+                        style={styles.deleteButton}
+                        title="Delete URL"
+                      >
+                        <TrashIcon />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div style={styles.mobileCards}>
+            {urls.map((url) => (
+              <div key={url._id} style={styles.card}>
+                <div style={styles.cardRow}>
+                  <span style={styles.cardLabel}>Original URL:</span>
+                  <a
+                    href={url.originalUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={styles.cardLink}
+                  >
+                    {url.originalUrl.length > 40
+                      ? url.originalUrl.substring(0, 40) + "..."
                       : url.originalUrl}
                   </a>
                 </div>
@@ -245,7 +404,7 @@ const Body = ({ user }) => {
 };
 
 const styles = {
-  container: { 
+  container: {
     padding: "1rem",
     maxWidth: "1200px",
     margin: "0 auto",
@@ -258,6 +417,7 @@ const styles = {
   subtitle: {
     fontSize: "clamp(1.1rem, 3vw, 1.5rem)",
     marginBottom: "1rem",
+    textAlign: "center",
   },
   inputContainer: {
     display: "flex",
@@ -267,7 +427,7 @@ const styles = {
     marginBottom: "1rem",
     padding: "0 0.5rem",
   },
-  input: { 
+  input: {
     flex: "1 1 300px",
     minWidth: "200px",
     maxWidth: "500px",
@@ -276,7 +436,7 @@ const styles = {
     border: "1px solid #ddd",
     borderRadius: "4px",
   },
-  button: { 
+  button: {
     padding: "0.75rem 1.5rem",
     fontSize: "1rem",
     cursor: "pointer",
@@ -287,12 +447,12 @@ const styles = {
     transition: "background-color 0.2s",
     minWidth: "120px",
   },
-  error: { 
+  error: {
     color: "#dc3545",
     textAlign: "center",
     padding: "0.5rem",
   },
-  result: { 
+  result: {
     margin: "1rem 0",
     padding: "1rem",
     backgroundColor: "#d4edda",
@@ -409,8 +569,8 @@ styleSheet.textContent = `
     }
   }
 `;
-if (!document.head.querySelector('style[data-url-shortener-styles]')) {
-  styleSheet.setAttribute('data-url-shortener-styles', 'true');
+if (!document.head.querySelector("style[data-url-shortener-styles]")) {
+  styleSheet.setAttribute("data-url-shortener-styles", "true");
   document.head.appendChild(styleSheet);
 }
 
