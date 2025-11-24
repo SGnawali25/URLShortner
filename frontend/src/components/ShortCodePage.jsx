@@ -18,9 +18,9 @@ const ShortCodePage = () => {
           { withCredentials: true }
         );
 
-        if (data.url) {
+        if (data.status) {
           // Redirect to backend route that handles redirect
-          window.location.href = `${BackendPrefix}/${shortCode}`;
+          window.location.href = `${data.url.originalUrl}`;
         } else {
           setError("Short URL not found.");
         }

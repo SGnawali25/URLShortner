@@ -2,11 +2,26 @@
 import { Url } from "../models/url.js";
 import { nanoid } from "nanoid";
 
+
+//test url is valid or not
+function isValidUrl(url) {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 // Create short URL
 export const createShortUrl = async (req, res) => {
   console.log(`createShortUrl called. ${req.body}`);
   try {
     const { originalUrl } = req.body;
+
+    if (!isValidUrl(originalUrl)) {
+      return res.status(400).json({ message: "Invalid URL format" , status :"false" });
+    }
 
     let shortCode;
     let isUnique = false;
@@ -24,7 +39,7 @@ export const createShortUrl = async (req, res) => {
     if (!isUnique) {
       return res
         .status(500)
-        .json({ message: "Failed to generate unique short code" });
+        .json({ message: "Failed to generate unique short code", status:"false" });
     }
 
     const url = await Url.create({
@@ -37,6 +52,7 @@ export const createShortUrl = async (req, res) => {
       message: "Short URL created",
       shortUrl: `http://localhost:4000/${shortCode}`,
       url,
+      status:"true"
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
@@ -69,12 +85,12 @@ export const verifyShortCode = async (req, res) => {
     const url = await Url.findOne({ shortCode });
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found for shortcode." });
+      return res.status(404).json({ message: "URL not found for shortcode." , status:"false"});
     }
 
-    res.status(200).json({ message: "Short code is valid", url });
+    res.status(200).json({ message: "Short code is valid", url , status:"true"});
   } catch (err) {
-    res.status(500).json({ message: "Server error", error: err.message });
+    res.status(500).json({ message: "Server error", error: err.message , status:"false"});
   }
 };
 
