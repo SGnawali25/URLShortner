@@ -177,8 +177,6 @@ const Body = ({ user }) => {
       {urls.length > 0 && (
         <div style={styles.tableContainer}>
           <h4 style={styles.subtitle}>Your URLs:</h4>
-
-          {/* Desktop Table View */}
           <div style={styles.desktopTable}>
             <table style={styles.table}>
               <thead>
@@ -238,64 +236,11 @@ const Body = ({ user }) => {
               </tbody>
             </table>
           </div>
-
-          {/* Mobile Card View */}
-          <div style={styles.mobileCards}>
-            {urls.map((url) => (
-              <div key={url._id} style={styles.card}>
-                <div style={styles.cardRow}>
-                  <span style={styles.cardLabel}>Original URL:</span>
-                  <a
-                    href={url.originalUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={styles.cardLink}
-                  >
-                    {url.originalUrl.length > 40
-                      ? url.originalUrl.substring(0, 40) + "..."
-                      : url.originalUrl}
-                  </a>
-                </div>
-                <div style={styles.cardRow}>
-                  <span style={styles.cardLabel}>Shortened URL:</span>
-                  <a
-                    href={`${frontendPrefix}/${url.shortCode}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={styles.cardLink}
-                  >
-                    {frontendPrefix}/{url.shortCode}
-                  </a>
-                </div>
-                <div style={styles.cardRow}>
-                  <span style={styles.cardLabel}>Created:</span>
-                  <span>{formatDate(url.createdAt)}</span>
-                </div>
-                {user?.role === "admin" && (
-                  <div style={styles.cardRow}>
-                    <span style={styles.cardLabel}>Created By:</span>
-                    <span>{url.createdBy?.email || "Anonymous"}</span>
-                  </div>
-                )}
-                {(user?.role === "admin" || url.createdBy === user?._id) && (
-                  <button
-                    onClick={() => handleDelete(url._id)}
-                    style={styles.deleteButtonCard}
-                    title="Delete URL"
-                  >
-                    <TrashIcon /> Delete
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
       )}
       {users.length > 0 && (
         <div style={styles.tableContainer}>
           <h4 style={styles.subtitle}>Users:</h4>
-
-          {/* Desktop Table View */}
           <div style={styles.desktopTable}>
             <table style={styles.table}>
               <thead>
@@ -345,57 +290,6 @@ const Body = ({ user }) => {
                 ))}
               </tbody>
             </table>
-          </div>
-
-          {/* Mobile Card View */}
-          <div style={styles.mobileCards}>
-            {urls.map((url) => (
-              <div key={url._id} style={styles.card}>
-                <div style={styles.cardRow}>
-                  <span style={styles.cardLabel}>Original URL:</span>
-                  <a
-                    href={url.originalUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={styles.cardLink}
-                  >
-                    {url.originalUrl.length > 40
-                      ? url.originalUrl.substring(0, 40) + "..."
-                      : url.originalUrl}
-                  </a>
-                </div>
-                <div style={styles.cardRow}>
-                  <span style={styles.cardLabel}>Shortened URL:</span>
-                  <a
-                    href={`${frontendPrefix}/${url.shortCode}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={styles.cardLink}
-                  >
-                    {frontendPrefix}/{url.shortCode}
-                  </a>
-                </div>
-                <div style={styles.cardRow}>
-                  <span style={styles.cardLabel}>Created:</span>
-                  <span>{formatDate(url.createdAt)}</span>
-                </div>
-                {user?.role === "admin" && (
-                  <div style={styles.cardRow}>
-                    <span style={styles.cardLabel}>Created By:</span>
-                    <span>{url.createdBy?.email || "Anonymous"}</span>
-                  </div>
-                )}
-                {(user?.role === "admin" || url.createdBy === user?._id) && (
-                  <button
-                    onClick={() => handleDelete(url._id)}
-                    style={styles.deleteButtonCard}
-                    title="Delete URL"
-                  >
-                    <TrashIcon /> Delete
-                  </button>
-                )}
-              </div>
-            ))}
           </div>
         </div>
       )}
@@ -510,10 +404,7 @@ const styles = {
     justifyContent: "center",
     minWidth: "40px",
   },
-  // Mobile card view (hidden on desktop)
-  mobileCards: {
-    display: "none",
-  },
+
   card: {
     backgroundColor: "white",
     border: "1px solid #ddd",
