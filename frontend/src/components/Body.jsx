@@ -55,7 +55,7 @@ const Body = ({ user }) => {
       );
 
       setShortenedUrl(`${frontendPrefix}/${data.url.shortCode}`);
-
+      setOriginalUrl("");
       // Refresh dashboard URLs
       if (user) {
         const dashboardRes = await axios.get(`${BackendPrefix}/dashboard`, {
