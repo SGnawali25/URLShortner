@@ -147,10 +147,10 @@ export const deleteUser = async (req, res) => {
     console.log(`🗑️ User ${id} removed from Redis cache`);
 
     // Delete cached URLs for this user (if cached as url:<shortId>)
-    const urlKeys = urls.map((u) => `url:${u.shortId}`);
+    const urlKeys = urls.map((u) => `url:${u.shortCode}`);
     if (urlKeys.length > 0) {
-      await redis.del(...urlKeys);
-      console.log(`🗑️ Deleted ${urlKeys.length} URL(s) from Redis cache`);
+      const deletedUrlCount = await redis.del(...urlKeys);
+      console.log(`Found ${urlKeys.length} Deleted ${deletedUrlCount} URL(s) from Redis cache`);
     }
 
     res.status(200).json({ message: "User and their URLs deleted successfully" });
