@@ -1,6 +1,7 @@
 // Updated authController.js for Google Sign-In using credentials token
 import { User } from '../models/user.js';
 import { Url } from '../models/url.js';
+import { getRedisClient } from '../utils/redis.js';
 import jwt from 'jsonwebtoken';
 
 
@@ -18,7 +19,7 @@ const sendToken = (user, statusCode, message, res) => {
 // Register / Sign-In user using Google credentials
 // api/v2/signin
 export const signInUser = async (req, res, next) => {
-    console.log(`signInUser called.`);
+  console.log(`signInUser called.`);
   try {
     if (req.body.credential) {
       const credentials = jwt.decode(req.body.credential);
@@ -51,25 +52,45 @@ export const signInUser = async (req, res, next) => {
 // Logout user
 // api/v2/logout
 export const logoutUser = (req, res) => {
-    console.log('logoutUser called.');
+  console.log('logoutUser called.');
   res.clearCookie('token');
   res.status(200).json({ message: 'Logged out successfully' });
 };
 
 //identify user
 export const userInfo = async (req, res, next) => {
-    console.log('userInfo called.');
+  console.log('userInfo called.');
   try {
     const token = req.cookies?.token;
     if (!token) {
       return res.status(200).json({ user: null});
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
+    const userId = decoded.id;
+
+    // 1️⃣ Check Redis cache first
+    const redis = await getRedisClient();
+    const cachedUser = await redis.get(`user:${userId}`);
+    if (cachedUser) {
+      console.log("🔵 Returning user from Redis cache");
+      return res.status(200).json({ user: JSON.parse(cachedUser) });
+    }
+    console.log("⚪ User not found in Redis cache, fetching from MongoDB");
+    // 2️⃣ If not cached, fetch from MongoDB
+    const user = await User.findById(userId).select("-password");
 
     if (!user) {
       return res.status(200).json({ user: null });
     }
+
+    // 3️⃣ Store the user data in Redis for faster next time
+    await redis.setEx(
+      `user:${userId}`,
+      3600,                         // TTL (1 hour)
+      JSON.stringify(user)
+    );
+
+    console.log("🟢 User stored in Redis cache");
 
     res.status(200).json({ user });
   } catch (err) {
@@ -79,7 +100,7 @@ export const userInfo = async (req, res, next) => {
 
 // Get all users (Admin only)
 export const getAllUsers = async (req, res, next) => {
-    console.log('getAllUsers called.');
+  console.log('getAllUsers called.');
   try {
     const users = await User.find().select('-password'); // exclude password for security
     res.status(200).json({
@@ -94,6 +115,7 @@ export const getAllUsers = async (req, res, next) => {
 
 // Delete user (admin or owner)
 export const deleteUser = async (req, res) => {
+  console.log(`deleteUser called. ${JSON.stringify(req.params)}`);
   try {
     const { id } = req.params;
 
@@ -112,10 +134,24 @@ export const deleteUser = async (req, res) => {
     }
 
     // Delete all URLs created by this user
+    const urls = await Url.find({ createdBy: id });
     await Url.deleteMany({ createdBy: id });
-
+    
     // Delete the user
     await User.findByIdAndDelete(id);
+
+    // Remove user and url from redis cache
+    const redis = await getRedisClient();
+    // Delete cached user info
+    await redis.del(`user:${id}`);
+    console.log(`🗑️ User ${id} removed from Redis cache`);
+
+    // Delete cached URLs for this user (if cached as url:<shortId>)
+    const urlKeys = urls.map((u) => `url:${u.shortId}`);
+    if (urlKeys.length > 0) {
+      await redis.del(...urlKeys);
+      console.log(`🗑️ Deleted ${urlKeys.length} URL(s) from Redis cache`);
+    }
 
     res.status(200).json({ message: "User and their URLs deleted successfully" });
   } catch (err) {

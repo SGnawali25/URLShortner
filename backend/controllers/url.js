@@ -1,6 +1,7 @@
 // controllers/url.js
 import { Url } from "../models/url.js";
 import { nanoid } from "nanoid";
+import { getRedisClient } from '../utils/redis.js';
 
 
 //test url is valid or not
@@ -15,7 +16,7 @@ function isValidUrl(url) {
 
 // Create short URL
 export const createShortUrl = async (req, res) => {
-  console.log(`createShortUrl called. ${req.body}`);
+  console.log(`createShortUrl called. ${JSON.stringify(req.body)}`);
   try {
     const { originalUrl } = req.body;
 
@@ -50,7 +51,6 @@ export const createShortUrl = async (req, res) => {
 
     res.status(201).json({
       message: "Short URL created",
-      shortUrl: `http://localhost:4000/${shortCode}`,
       url,
       status:"true"
     });
@@ -64,6 +64,7 @@ export const redirectToOriginalUrl = async (req, res) => {
   console.log(`redirectToOriginalUrl called. ${JSON.stringify(req.params)}`);
   try {
     const { shortCode } = req.params;
+
     const url = await Url.findOne({ shortCode });
 
     if (!url) {
@@ -82,11 +83,27 @@ export const verifyShortCode = async (req, res) => {
   console.log(`verify shortcode called. ${JSON.stringify(req.params)}`);
   try {
     const { shortCode } = req.params;
+    
+    //Check Redis cache first
+    const redis = await getRedisClient();
+    const cachedUrl = await redis.get(`url:${shortCode}`);
+    if (cachedUrl) {
+      console.log("🔵 Returning url from Redis cache");
+      return res.status(200).json({ message: "Short code is valid", url: JSON.parse(cachedUrl) , status:"true"});
+    }
+    console.log("⚪ Url not found in Redis cache, fetching from MongoDB");
     const url = await Url.findOne({ shortCode });
 
     if (!url) {
       return res.status(404).json({ message: "URL not found for shortcode." , status:"false"});
     }
+
+    //Store the user data in Redis for faster next time
+    await redis.setEx(
+      `url:${shortCode}`,
+      3600,                         // TTL (1 hour)
+      JSON.stringify(url)
+    );
 
     res.status(200).json({ message: "Short code is valid", url , status:"true"});
   } catch (err) {
@@ -96,6 +113,7 @@ export const verifyShortCode = async (req, res) => {
 
 // Delete URL (admin or owner)
 export const deleteUrl = async (req, res) => {
+  console.log(`deleteUrl called. ${JSON.stringify(req.params)}`);
   try {
     const { id } = req.params;
 
@@ -106,6 +124,10 @@ export const deleteUrl = async (req, res) => {
     if (req.user.role !== "admin" && url.createdBy.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: "You are not allowed to delete this URL" });
     }
+
+    const redis = await getRedisClient();
+    const result = await redis.del(`url:${url.shortCode}`);
+    console.log(`${result} number of keys deleted from redis.`); // number of keys deleted
 
     await Url.findByIdAndDelete(id);
 

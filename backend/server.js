@@ -1,11 +1,18 @@
 // server.js
+import dotenv from "dotenv";
+
+//setting up config file
+dotenv.config({path:'config.env'})
+
 import express from "express";
 import mongoose from "mongoose";
-import dotenv from "dotenv";
+
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRoutes from './routes/user.js';
 import urlRoutes from './routes/url.js';
+
+
 
 const app = express();
 app.use(express.json());
@@ -19,8 +26,7 @@ app.use(cors({
 }));
 
 
-//setting up config file
-dotenv.config({path:'config.env'})
+
 
 
 // User routes
