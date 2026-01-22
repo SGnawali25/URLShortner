@@ -20,10 +20,11 @@ app.use(cookieParser());
 
 
 app.use(cors({
-    origin: true, // allows all origins dynamically
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
+  origin: "https://sandyurl.pages.dev",
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+  credentials: true,
 }));
+
 
 
 
